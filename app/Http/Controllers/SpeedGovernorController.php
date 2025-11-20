@@ -14,10 +14,10 @@ class SpeedGovernorController extends Controller
             'vendor_name' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
-        $gov = $vehicle->speedGovernors()->create($validated);
-        return response()->json($gov, 201);
+        $sg = $vehicle->speedGovernors()->create($validated);
+        return response()->json($sg, 201);
     }
 
     public function update(Request $request, SpeedGovernor $speedGovernor)
@@ -26,8 +26,8 @@ class SpeedGovernorController extends Controller
             'vendor_name' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $speedGovernor->update($validated);
         return response()->json($speedGovernor);
     }

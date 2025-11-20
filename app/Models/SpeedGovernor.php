@@ -1,9 +1,20 @@
 <?php
+
 namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SpeedGovernor extends Model
 {
-    protected $fillable = ['vehicle_id', 'vendor_name', 'issue_date', 'expiry_date'];
+    use HasFactory;
+
+    protected $fillable = ['vehicle_id', 'vendor_name', 'issue_date', 'expiry_date', 'total_amount'];
+
     protected $casts = ['issue_date' => 'date', 'expiry_date' => 'date'];
+
+    public function transactions()
+    {
+        return $this->morphMany(Transaction::class, 'payable');
+    }
 }

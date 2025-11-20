@@ -32,19 +32,16 @@ class CitizenController extends Controller
 
     public function show(Citizen $citizen)
     {
-        // SECURITY CHECK: If this citizen does not belong to the user, block access
-        if ($citizen->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        // ... security check ...
 
         $citizen->load([
-            'vehicles.taxes',
-            'vehicles.insurances',
-            'vehicles.puccs',
-            'vehicles.fitnesses',
-            'vehicles.permits',
-            'vehicles.speedGovernors',
-            'vehicles.vltds'
+            'vehicles.taxes.transactions',            // <--- ADD THIS
+            'vehicles.insurances.transactions',       // <--- ADD THIS
+            'vehicles.puccs.transactions',            // <--- ADD THIS
+            'vehicles.fitnesses.transactions',        // <--- ADD THIS
+            'vehicles.permits.transactions',          // <--- ADD THIS
+            'vehicles.speedGovernors.transactions',   // <--- ADD THIS
+            'vehicles.vltds.transactions'             // <--- ADD THIS
         ]);
 
         return response()->json($citizen);

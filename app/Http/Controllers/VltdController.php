@@ -14,8 +14,8 @@ class VltdController extends Controller
             'vendor_name' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $vltd = $vehicle->vltds()->create($validated);
         return response()->json($vltd, 201);
     }
@@ -26,8 +26,8 @@ class VltdController extends Controller
             'vendor_name' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $vltd->update($validated);
         return response()->json($vltd);
     }

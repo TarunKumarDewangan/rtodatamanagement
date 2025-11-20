@@ -14,8 +14,8 @@ class PermitController extends Controller
             'permit_no' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $permit = $vehicle->permits()->create($validated);
         return response()->json($permit, 201);
     }
@@ -26,8 +26,8 @@ class PermitController extends Controller
             'permit_no' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $permit->update($validated);
         return response()->json($permit);
     }

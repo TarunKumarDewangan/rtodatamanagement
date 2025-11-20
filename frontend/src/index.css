@@ -66,3 +66,35 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 } */
+
+/* --- PRINT STYLES --- */
+@media print {
+    /* Hide non-essential elements */
+    .no-print,
+    .navbar,
+    footer,
+    button,
+    a {
+        display: none !important;
+    }
+
+    /* Ensure the ledger takes full width */
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Remove shadows and backgrounds for crisp text */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    /* Ensure table text is black */
+    body {
+        background-color: white;
+        color: black;
+    }
+}

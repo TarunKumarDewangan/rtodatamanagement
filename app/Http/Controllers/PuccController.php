@@ -15,8 +15,8 @@ class PuccController extends Controller
             'valid_from' => 'nullable|date',
             'valid_until' => 'required|date',
             'status' => 'nullable|string',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $pucc = $vehicle->puccs()->create($validated);
         return response()->json($pucc, 201);
     }
@@ -28,12 +28,11 @@ class PuccController extends Controller
             'valid_from' => 'nullable|date',
             'valid_until' => 'required|date',
             'status' => 'nullable|string',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $pucc->update($validated);
         return response()->json($pucc);
     }
-
     public function destroy(Pucc $pucc)
     {
         $pucc->delete();

@@ -18,6 +18,7 @@ import CitizenPage from './pages/user/CitizenPage';
 import ViewCitizensPage from './pages/user/ViewCitizensPage';
 import CitizenProfilePage from './pages/user/CitizenProfilePage';
 import ExpiryReportPage from './pages/user/ExpiryReportPage';
+import CitizenLedgerPage from './pages/user/CitizenLedgerPage';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
                     <Route path="/create-citizen" element={<CitizenPage />} />
                     <Route path="/view-citizens" element={<ViewCitizensPage />} />
                     <Route path="/citizens/:id" element={<CitizenProfilePage />} />
+                    <Route path="/citizens/:id/account" element={<CitizenLedgerPage />} />
 
                     {/* Reports */}
                     <Route path="/expiry-report" element={<ExpiryReportPage />} />

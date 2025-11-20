@@ -16,6 +16,7 @@ class InsuranceController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'required|date',
             'status' => 'nullable|string',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
 
         $insurance = $vehicle->insurances()->create($validated);
@@ -30,6 +31,7 @@ class InsuranceController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'required|date',
             'status' => 'nullable|string',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
 
         $insurance->update($validated);

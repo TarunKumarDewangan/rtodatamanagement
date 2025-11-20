@@ -76,6 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('/citizens/{citizen}', [CitizenController::class, 'update']); // Needed for Edit
     Route::delete('/citizens/{citizen}', [CitizenController::class, 'destroy']); // Needed for Delete
+    Route::post('/transactions', [App\Http\Controllers\TransactionController::class, 'store']);
+
+    Route::put('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'update']);
+    Route::delete('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'destroy']);
 
     // Admin Only
     Route::middleware('isAdmin')->prefix('admin')->group(function () {

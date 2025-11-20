@@ -14,8 +14,8 @@ class FitnessController extends Controller
             'certificate_no' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $fitness = $vehicle->fitnesses()->create($validated);
         return response()->json($fitness, 201);
     }
@@ -26,8 +26,8 @@ class FitnessController extends Controller
             'certificate_no' => 'nullable|string',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'required|date',
+            'total_amount' => 'nullable|numeric', // <--- ADD THIS
         ]);
-
         $fitness->update($validated);
         return response()->json($fitness);
     }
