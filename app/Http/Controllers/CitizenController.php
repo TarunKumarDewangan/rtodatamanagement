@@ -71,4 +71,24 @@ class CitizenController extends Controller
 
         return response()->json($citizen, 201);
     }
+
+    public function update(Request $request, Citizen $citizen)
+    {
+        // Security check
+        if ($citizen->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $citizen->update($request->all());
+        return response()->json($citizen);
+    }
+
+    public function destroy(Citizen $citizen)
+    {
+        if ($citizen->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $citizen->delete();
+        return response()->json(['message' => 'Deleted']);
+    }
+
 }

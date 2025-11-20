@@ -74,6 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reports
     Route::get('/reports/expiry', [ReportController::class, 'expiryReport']);
 
+    Route::put('/citizens/{citizen}', [CitizenController::class, 'update']); // Needed for Edit
+    Route::delete('/citizens/{citizen}', [CitizenController::class, 'destroy']); // Needed for Delete
+
     // Admin Only
     Route::middleware('isAdmin')->prefix('admin')->group(function () {
         Route::get('/users', [AdminController::class, 'getUserLevel1Users']);
