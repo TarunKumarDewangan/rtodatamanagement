@@ -8,12 +8,26 @@ use Illuminate\Support\Facades\Auth;
 
 class CitizenController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // ONLY get citizens created by the logged-in user
-        return response()->json(
-            Citizen::where('user_id', Auth::id())->latest()->get()
-        );
+        $query = Citizen::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->with('vehicles'); // Eager load vehicles for display
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                // Search Citizen Details
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('mobile_number', 'like', "%{$search}%")
+                    // Search Related Vehicles
+                    ->orWhereHas('vehicles', function ($v) use ($search) {
+                        $v->where('registration_no', 'like', "%{$search}%")
+                            ->orWhere('chassis_no', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return response()->json($query->latest()->get());
     }
 
     public function show(Citizen $citizen)
