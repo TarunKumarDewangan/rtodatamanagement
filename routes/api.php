@@ -88,6 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/settings', [SettingsController::class, 'updateSettings']);
     Route::get('/user/settings', [SettingsController::class, 'getSettings']);
 
+    // Inside auth:sanctum group
+    Route::get('/dashboard/stats', [App\Http\Controllers\DashboardController::class, 'getStats']);
+
     // Admin Only
     Route::middleware('isAdmin')->prefix('admin')->group(function () {
         Route::get('/users', [AdminController::class, 'getUserLevel1Users']);
