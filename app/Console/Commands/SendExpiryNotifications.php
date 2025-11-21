@@ -135,7 +135,7 @@ class SendExpiryNotifications extends Command
             $regNo = $vehicle->registration_no;
             $mobile = $vehicle->citizen->mobile_number;
 
-            $message = "प्रिय ग्राहक\nआपके वाहन {$regNo} के {$docName} की वैधता\n{$formattedDate} को समाप्त हो रही है।\n\nसमय पर नवीनीकरण कराएं और\nचालान/क्लेम रिजेक्शन से बचें\n\nHARSHIT RTO & INSURANCE SERVICES\n7000175067 | 7999664014";
+            $message = "प्रिय ग्राहक\nआपके वाहन {$regNo} के {$docName} की वैधता\n{$formattedDate} को समाप्त हो रही है।\n\nसमय पर नवीनीकरण कराएं और\nचालान/क्लेम रिजेक्शन से बचें\n\n Name Mobile No";
 
             // Ensure country code 91 is added
             $finalMobile = '91' . $mobile;
