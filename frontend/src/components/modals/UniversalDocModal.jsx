@@ -16,28 +16,23 @@ const formatDateInput = (dateString) => dateString ? new Date(dateString).toISOS
 
 function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData }) {
     const conf = CONFIG[docType];
-    // Safety check: if docType is invalid, don't render
     if (!vehicle || !conf) return null;
-
     const startDateField = docType === 'pucc' ? 'valid_from' : 'issue_date';
 
-    // Form State
     const [formData, setFormData] = useState({ [conf.numField]: '', [conf.dateField]: '', [startDateField]: '', total_amount: '' });
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // Payment State
     const [showPayment, setShowPayment] = useState(false);
     const [payId, setPayId] = useState(null);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // Helper to calculate balance
     const getBalance = (item) => {
-        const bill = parseFloat(item.total_amount || 0);
+        const bill = parseFloat(item.total_amount);
+        if (isNaN(bill)) return 0;
         const paid = item.transactions?.reduce((sum, tr) => sum + parseFloat(tr.amount_paid), 0) || 0;
-        return bill - paid;
+        return (bill - paid).toFixed(2);
     };
 
     const handleEditClick = (item) => {
@@ -46,7 +41,7 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
             [conf.numField]: item[conf.numField] || '',
             [conf.dateField]: formatDateInput(item[conf.dateField]),
             [startDateField]: formatDateInput(item[startDateField]),
-            total_amount: item.total_amount || '' // Ensure this loads correctly
+            total_amount: item.total_amount ? item.total_amount.toString() : ''
         });
     };
 
@@ -58,22 +53,13 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
         try {
-            // Ensure total_amount is sent properly
-            const payload = { ...formData, total_amount: parseFloat(formData.total_amount) || 0 };
-
+            const payload = { ...formData, total_amount: formData.total_amount ? parseFloat(formData.total_amount) : 0 };
             if (editingId) await api.put(`/api/${conf.apiPath}/${editingId}`, payload);
             else await api.post(`/api/vehicles/${vehicle.id}/${conf.apiPath}`, payload);
-
             await refreshData();
             handleCancelEdit();
-        } catch (err) {
-            console.error(err);
-            setError("Failed to save. Check inputs.");
-        } finally {
-            setLoading(false);
-        }
+        } catch (err) { setError("Failed to save."); } finally { setLoading(false); }
     };
 
     const handleDelete = async (id) => {
@@ -87,20 +73,19 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
                 <Modal.Header closeButton onHide={handleCancelEdit}><Modal.Title>Manage {conf.title} - {vehicle.registration_no}</Modal.Title></Modal.Header>
                 <Modal.Body>
                     <div className="table-responsive mb-4" style={{maxHeight: '250px', overflowY: 'auto'}}>
-                        <Table size="sm" striped bordered hover className="align-middle">
+                        <Table size="sm" striped bordered hover className="align-middle text-center">
                             <thead className="table-light sticky-top">
                                 <tr>
                                     <th>{conf.numLabel}</th>
                                     <th>Expiry</th>
                                     <th>Bill Amount</th>
                                     <th>Balance</th>
-                                    <th className="text-center" style={{minWidth:'160px'}}>Action</th>
+                                    <th style={{minWidth:'160px'}}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* Access the dynamic list key safely */}
                                 {vehicle[conf.listKey]?.map(item => {
-                                    const bal = getBalance(item);
+                                    const bal = parseFloat(getBalance(item));
                                     return (
                                         <tr key={item.id} className={editingId === item.id ? "table-primary" : ""}>
                                             <td>{item[conf.numField] || '-'}</td>
@@ -108,11 +93,11 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
                                                 {formatDateDisplay(item[conf.dateField])}
                                                 {new Date(item[conf.dateField]) < new Date() && <Badge bg="danger" className="ms-2">Exp</Badge>}
                                             </td>
-                                            <td>₹{parseFloat(item.total_amount || 0).toFixed(2)}</td>
-                                            <td className={bal > 0 ? 'text-danger fw-bold' : 'text-success'}>₹{bal.toFixed(2)}</td>
-                                            <td className="text-center">
-                                                {/* PAY BUTTON */}
-                                                {bal > 0 && <Button size="sm" variant="success" className="me-1" onClick={() => { setPayId(item.id); setShowPayment(true); }}>Pay</Button>}
+                                            <td>₹{item.total_amount}</td>
+                                            <td className={bal > 0 ? 'text-danger fw-bold' : 'text-success'}>₹{bal}</td>
+                                            <td>
+                                                {/* Pay Button ALWAYS visible */}
+                                                <Button size="sm" variant="success" className="me-1" onClick={() => { setPayId(item.id); setShowPayment(true); }}>Pay</Button>
                                                 <Button size="sm" variant="info" className="me-1 text-white" onClick={() => handleEditClick(item)}>Edit</Button>
                                                 <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>X</Button>
                                             </td>
@@ -124,7 +109,6 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
                     </div>
                     <hr />
                     <h6 className="text-primary fw-bold">{editingId ? 'Edit Record' : 'Add New'}</h6>
-                    {error && <Alert variant="danger">{error}</Alert>}
                     <Form onSubmit={handleSubmit}>
                         <Row>
                             <Col md={4}>
@@ -135,8 +119,9 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
                             </Col>
                             <Col md={4}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-primary fw-bold">Bill Amount *</Form.Label>
-                                    <Form.Control type="number" required name="total_amount" value={formData.total_amount} onChange={handleChange} />
+                                    <Form.Label className="text-primary fw-bold">Bill Amount (Optional)</Form.Label>
+                                    {/* Removed required */}
+                                    <Form.Control type="number" name="total_amount" value={formData.total_amount} onChange={handleChange} />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -148,15 +133,7 @@ function UniversalDocModal({ show, handleClose, vehicle, docType, refreshData })
                     </Form>
                 </Modal.Body>
             </Modal>
-
-            {/* IMPORTANT: docType passed here must match the key in TransactionController */}
-            <PaymentModal
-                show={showPayment}
-                handleClose={() => setShowPayment(false)}
-                docType={conf.docType} // This passes 'fitness', 'permit', etc.
-                docId={payId}
-                refreshData={refreshData}
-            />
+            <PaymentModal show={showPayment} handleClose={() => setShowPayment(false)} docType={conf.docType} docId={payId} refreshData={refreshData} />
         </>
     );
 }

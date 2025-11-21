@@ -19,6 +19,7 @@ import ViewCitizensPage from './pages/user/ViewCitizensPage';
 import CitizenProfilePage from './pages/user/CitizenProfilePage';
 import ExpiryReportPage from './pages/user/ExpiryReportPage';
 import CitizenLedgerPage from './pages/user/CitizenLedgerPage';
+import BackupPage from './pages/user/BackupPage';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
 
                     {/* Reports */}
                     <Route path="/expiry-report" element={<ExpiryReportPage />} />
+                    <Route path="/backup" element={<BackupPage />} />
                 </Route>
             </Route>
 

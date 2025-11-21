@@ -52,4 +52,5 @@ class Vehicle extends Model
     {
         return $this->hasMany(Vltd::class)->orderBy('expiry_date', 'desc');
     }
+
 }

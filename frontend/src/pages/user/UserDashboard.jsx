@@ -2,9 +2,16 @@ import React from 'react';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
+import api from '../../api';
 
 function UserDashboard() {
     const { user, hasActivity } = useAuth();
+
+    const handleDownloadBackup = async () => {
+        // Trigger download via browser directly to handle stream
+        // Ensure your API_URL is correct here (http://localhost:8000)
+        window.open('http://localhost:8000/api/export/csv', '_blank');
+    };
 
     return (
         <Container className="py-4">
@@ -21,7 +28,7 @@ function UserDashboard() {
             )}
 
             <Row>
-                {/* Card: Manage Citizens */}
+                {/* 1. Citizen Management */}
                 {hasActivity('create_citizen') && (
                     <Col md={6} lg={4} className="mb-3">
                         <Card className="h-100 shadow-sm border-0 bg-light">
@@ -44,7 +51,7 @@ function UserDashboard() {
                     </Col>
                 )}
 
-                {/* Card: Reports */}
+                {/* 2. Expiry Reports */}
                 {hasActivity('view_reports') && (
                     <Col md={6} lg={4} className="mb-3">
                         <Card className="h-100 shadow-sm border-0 bg-light">
@@ -63,6 +70,25 @@ function UserDashboard() {
                         </Card>
                     </Col>
                 )}
+
+                {/* 3. Data Backup (Available to everyone with access) */}
+                <Col md={6} lg={4} className="mb-3">
+                    <Card className="h-100 shadow-sm border-0 bg-light">
+                        <Card.Body className="d-flex flex-column text-center">
+                            <h1 className="display-4 text-secondary mb-3">💾</h1>
+                            <Card.Title>Data Backup</Card.Title>
+                            <Card.Text className="text-muted">
+                                Download all your records as a CSV file for safekeeping.
+                            </Card.Text>
+                            <div className="mt-auto d-grid">
+                                {/*<Button variant="secondary" onClick={handleDownloadBackup}>
+                                    Download CSV
+                                </Button> */}
+                                <Button as={Link} to="/backup" variant="secondary">Go to Backup</Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
             </Row>
         </Container>
     );

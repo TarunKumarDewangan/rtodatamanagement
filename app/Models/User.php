@@ -15,8 +15,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // admin, userlevel1
-        'status', // active, deactivated
+        'role',
+        'status',
+        'whatsapp_key',
+        'whatsapp_host' // <--- Add these
     ];
 
     protected $hidden = [

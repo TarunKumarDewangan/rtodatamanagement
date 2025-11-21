@@ -16,6 +16,7 @@ use App\Http\Controllers\PermitController;
 use App\Http\Controllers\SpeedGovernorController;
 use App\Http\Controllers\VltdController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,6 +81,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'update']);
     Route::delete('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'destroy']);
+
+    /*Route::get('/export/csv', [App\Http\Controllers\ExportController::class, 'downloadCsv']);*/
+    Route::get('/export/backup', [App\Http\Controllers\ExportController::class, 'downloadBackup']);
+
+    Route::post('/user/settings', [SettingsController::class, 'updateSettings']);
+    Route::get('/user/settings', [SettingsController::class, 'getSettings']);
 
     // Admin Only
     Route::middleware('isAdmin')->prefix('admin')->group(function () {

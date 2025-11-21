@@ -30,5 +30,9 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'conic' => [
+        'host' => env('CONIC_HOST_NAME', 'api.iconicsolution.co.in'), // Matches .env
+        'key' => env('CONIC_API_KEY'),                               // Matches .env
+    ],
 
 ];

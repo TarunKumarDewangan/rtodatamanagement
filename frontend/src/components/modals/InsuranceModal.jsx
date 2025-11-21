@@ -11,18 +11,16 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // Payment State
     const [showPayment, setShowPayment] = useState(false);
     const [payId, setPayId] = useState(null);
 
     if (!vehicle) return null;
 
-    // Helper to calculate balance
     const getBalance = (item) => {
-        const bill = parseFloat(item.total_amount || 0);
+        const bill = parseFloat(item.total_amount);
+        if (isNaN(bill)) return 0;
         const paid = item.transactions?.reduce((sum, tr) => sum + parseFloat(tr.amount_paid), 0) || 0;
-        return bill - paid;
+        return (bill - paid).toFixed(2);
     };
 
     const handleEditClick = (item) => {
@@ -33,7 +31,7 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
             start_date: formatDateInput(item.start_date),
             end_date: formatDateInput(item.end_date),
             status: item.status || 'Active',
-            total_amount: item.total_amount || ''
+            total_amount: item.total_amount ? item.total_amount.toString() : ''
         });
     };
 
@@ -46,8 +44,9 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
         e.preventDefault();
         setLoading(true);
         try {
-            if (editingId) await api.put(`/api/insurances/${editingId}`, formData);
-            else await api.post(`/api/vehicles/${vehicle.id}/insurances`, formData);
+            const payload = { ...formData, total_amount: formData.total_amount ? parseFloat(formData.total_amount) : 0 };
+            if (editingId) await api.put(`/api/insurances/${editingId}`, payload);
+            else await api.post(`/api/vehicles/${vehicle.id}/insurances`, payload);
             await refreshData();
             handleCancelEdit();
         } catch (err) { setError("Failed to save."); } finally { setLoading(false); }
@@ -64,19 +63,19 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
                 <Modal.Header closeButton onHide={handleCancelEdit}><Modal.Title>Manage Insurance - {vehicle.registration_no}</Modal.Title></Modal.Header>
                 <Modal.Body>
                     <div className="table-responsive mb-4" style={{maxHeight: '250px', overflowY: 'auto'}}>
-                        <Table size="sm" striped bordered hover className="align-middle">
+                        <Table size="sm" striped bordered hover className="align-middle text-center">
                             <thead className="table-light sticky-top">
                                 <tr>
                                     <th>Company</th>
                                     <th>Period</th>
                                     <th>Bill Amount</th>
                                     <th>Balance</th>
-                                    <th className="text-center" style={{minWidth:'160px'}}>Action</th>
+                                    <th style={{minWidth:'160px'}}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {vehicle.insurances?.map(i => {
-                                    const bal = getBalance(i);
+                                    const bal = parseFloat(getBalance(i));
                                     return (
                                         <tr key={i.id} className={editingId === i.id ? "table-primary" : ""}>
                                             <td>{i.company || '-'} <br/> <small className="text-muted">{i.type}</small></td>
@@ -84,11 +83,11 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
                                                 <small>{formatDateDisplay(i.start_date)} <br/> to {formatDateDisplay(i.end_date)}</small>
                                                 {new Date(i.end_date) < new Date() && <Badge bg="danger" className="ms-1">Exp</Badge>}
                                             </td>
-                                            <td>₹{parseFloat(i.total_amount || 0).toFixed(2)}</td>
-                                            <td className={bal > 0 ? 'text-danger fw-bold' : 'text-success'}>₹{bal.toFixed(2)}</td>
-                                            <td className="text-center">
-                                                {/* PAY BUTTON IS HERE */}
-                                                {bal > 0 && <Button size="sm" variant="success" className="me-1" onClick={() => { setPayId(i.id); setShowPayment(true); }}>Pay</Button>}
+                                            <td>₹{i.total_amount}</td>
+                                            <td className={bal > 0 ? 'text-danger fw-bold' : 'text-success'}>₹{bal}</td>
+                                            <td>
+                                                {/* Pay Button ALWAYS visible */}
+                                                <Button size="sm" variant="success" className="me-1" onClick={() => { setPayId(i.id); setShowPayment(true); }}>Pay</Button>
                                                 <Button size="sm" variant="info" className="me-1 text-white" onClick={() => handleEditClick(i)}>Edit</Button>
                                                 <Button size="sm" variant="danger" onClick={() => handleDelete(i.id)}>X</Button>
                                             </td>
@@ -104,7 +103,13 @@ function InsuranceModal({ show, handleClose, vehicle, refreshData }) {
                         <Row>
                             <Col md={4}><Form.Group className="mb-2"><Form.Label>Company</Form.Label><Form.Control value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} /></Form.Group></Col>
                             <Col md={4}><Form.Group className="mb-2"><Form.Label>Type</Form.Label><Form.Select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}><option value="">Select...</option><option>Third Party</option><option>Comprehensive</option></Form.Select></Form.Group></Col>
-                            <Col md={4}><Form.Group className="mb-2"><Form.Label className="text-primary fw-bold">Bill Amount *</Form.Label><Form.Control type="number" required value={formData.total_amount} onChange={e => setFormData({...formData, total_amount: e.target.value})} /></Form.Group></Col>
+                            <Col md={4}>
+                                <Form.Group className="mb-2">
+                                    <Form.Label className="text-primary fw-bold">Bill Amount (Optional)</Form.Label>
+                                    {/* Removed 'required' */}
+                                    <Form.Control type="number" value={formData.total_amount} onChange={e => setFormData({...formData, total_amount: e.target.value})} />
+                                </Form.Group>
+                            </Col>
                         </Row>
                         <Row>
                             <Col md={6}><Form.Group className="mb-3"><Form.Label>Start Date</Form.Label><Form.Control type="date" value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} /></Form.Group></Col>

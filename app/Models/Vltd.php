@@ -17,4 +17,8 @@ class Vltd extends Model
     {
         return $this->morphMany(Transaction::class, 'payable');
     }
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
 }

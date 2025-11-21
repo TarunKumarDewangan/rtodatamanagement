@@ -15,7 +15,8 @@ class AdminController extends Controller
     public function getUserLevel1Users()
     {
         $users = User::where('role', 'userlevel1')
-            ->select('id', 'name', 'email', 'status')
+            // Select the whatsapp fields too
+            ->select('id', 'name', 'email', 'status', 'whatsapp_key', 'whatsapp_host')
             ->orderBy('name')
             ->get();
         return response()->json($users);
@@ -23,7 +24,6 @@ class AdminController extends Controller
 
     public function getSingleUser(User $user)
     {
-        // Return user with their assigned activities
         return response()->json($user->load('activities'));
     }
 
@@ -33,6 +33,8 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'whatsapp_key' => ['nullable', 'string'],
+            'whatsapp_host' => ['nullable', 'string'],
         ]);
 
         $user = User::create([
@@ -40,7 +42,9 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'userlevel1',
-            'status' => 'active'
+            'status' => 'active',
+            'whatsapp_key' => $request->whatsapp_key,
+            'whatsapp_host' => $request->whatsapp_host,
         ]);
 
         return response()->json($user, 201);
@@ -52,10 +56,17 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'whatsapp_key' => ['nullable', 'string'],
+            'whatsapp_host' => ['nullable', 'string'],
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
+
+        // Update keys
+        $user->whatsapp_key = $request->whatsapp_key;
+        $user->whatsapp_host = $request->whatsapp_host;
+
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
