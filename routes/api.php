@@ -104,4 +104,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/activities', [AdminController::class, 'getActivities']);
         Route::post('/users/{user}/activities', [AdminController::class, 'syncUserActivities']);
     });
+
+    Route::get('/test-whatsapp', function () {
+        // Replace with the email you want to test
+        $user = \App\Models\User::where('email', 'vijayonline@gmail.com')->first();
+
+        if (!$user)
+            return 'User not found';
+
+        $result = app(\App\Services\WhatsAppService::class)
+            ->sendToUserCustomer($user, '91YOURNUMBER', 'Testing via Route');
+
+        return $result ? 'Success' : 'Failed (Check logs)';
+    });
+
 });
