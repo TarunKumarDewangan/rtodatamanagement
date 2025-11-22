@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -11,25 +10,31 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate([
+        // 1. Validate request
+        $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        // 2. Try login (session-based)
+        if (!Auth::attempt($credentials, true)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials do not match our records.'],
             ]);
         }
 
+        // 3. Regenerate session ID (CRITICAL FIX !!!)
+        $request->session()->regenerate();
+
         $user = Auth::user();
 
+        // 4. Check if deactivated
         if ($user->status !== 'active') {
-            Auth::guard('web')->logout();
+            Auth::logout();
             return response()->json(['message' => 'Account is deactivated.'], 403);
         }
 
-        // Load activities so frontend knows what menus to show
+        // 5. Return logged-in user + permissions
         return response()->json([
             'message' => 'Logged in successfully.',
             'user' => $user->load('activities'),
@@ -38,14 +43,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return response()->json(['message' => 'Logged out successfully.']);
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user()->load('activities'));
+        return response()->json(
+            $request->user()->load('activities')
+        );
     }
 }

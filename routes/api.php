@@ -25,7 +25,7 @@ use App\Http\Controllers\SettingsController;
 */
 
 // 1. Public Routes
-Route::post('/login', [AuthController::class, 'login']);
+//Route::post('/login', [AuthController::class, 'login']);
 
 // 2. Protected Routes (Logged In)
 Route::middleware('auth:sanctum')->group(function () {
