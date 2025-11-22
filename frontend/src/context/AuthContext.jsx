@@ -7,13 +7,13 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // auth check loading
+    const [loading, setLoading] = useState(true);
 
-    // 1. App start पर check करें कि user already login है या नहीं
+    // App start पर existing session check
     useEffect(() => {
         const checkUser = async () => {
             try {
-                const { data } = await api.get('/api/user'); // auth:sanctum route
+                const { data } = await api.get('/api/user');
                 setUser(data);
             } catch (error) {
                 setUser(null);
@@ -24,41 +24,56 @@ export const AuthProvider = ({ children }) => {
 
         checkUser();
 
-        // Auto logout event (अगर future में use करना हो)
         const handleAutoLogout = () => setUser(null);
         window.addEventListener('auth:logout', handleAutoLogout);
         return () => window.removeEventListener('auth:logout', handleAutoLogout);
     }, []);
 
-    // 2. LOGIN – important part (पहले यहाँ से ही 401 वाली timing issue आ रही थी)
+    // 🔑 LOGIN – main change यहाँ है
     const login = async (credentials) => {
-        // a) CSRF cookie
+        // 1) CSRF cookie
         await getCsrfCookie();
 
-        // b) Login – Laravel Sanctum session cookie set करेगा
-        await api.post('/api/login', credentials);
+        // 2) Login – अगर credentials गलत हैं तो यहीं error throw होगा
+        const loginRes = await api.post('/api/login', credentials);
 
-        // c) अब Sanctum से confirm करो कि user login है
-        const { data } = await api.get('/api/user');
-        setUser(data);
+        // login response से user (Laravel भेज रहा है 'user' key में)
+        let loggedInUser = loginRes.data?.user;
 
-        return data; // optional
+        // 3) Optional confirmation from /api/user
+        try {
+            const { data } = await api.get('/api/user');
+            loggedInUser = data;
+        } catch (error) {
+            // अगर /api/user 401 दे और हमारे पास loginRes से user है,
+            // तो इस error को ignore कर देंगे (UI में "Unauthenticated" नहीं दिखाएंगे)
+            if (error.response?.status === 401 && loggedInUser) {
+                console.warn(
+                    'Login success, but first /api/user returned 401. Using user from /api/login response.',
+                    error
+                );
+            } else {
+                // कोई और error है या loginRes में user ही नहीं मिला -> सच में fail
+                throw error;
+            }
+        }
+
+        setUser(loggedInUser);
+        return loggedInUser;
     };
 
-    // 3. LOGOUT
     const logout = async () => {
         try {
             await api.post('/api/logout');
         } catch (e) {
-            // ignore
+            console.warn('Logout API failed, but clearing local state anyway.', e);
         } finally {
             setUser(null);
         }
     };
 
-    // 4. Helpers
     const hasActivity = (activityName) =>
-        user?.activities?.some(act => act.name === activityName) ?? false;
+        user?.activities?.some((act) => act.name === activityName) ?? false;
 
     const isAdmin = user?.role === 'admin';
 
