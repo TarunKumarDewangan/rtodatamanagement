@@ -109,4 +109,49 @@ class AdminController extends Controller
 
         return response()->json($user->load('activities'));
     }
+    public function getDashboardStats()
+    {
+        $users = User::where('role', 'userlevel1')->get();
+
+        $data = $users->map(function ($user) {
+            // 1. Get Citizen IDs for this user
+            $citizenIds = $user->citizens()->pluck('id');
+
+            // 2. Get Vehicle IDs belonging to those citizens
+            $vehicleIds = \App\Models\Vehicle::whereIn('citizen_id', $citizenIds)->pluck('id');
+
+            // 3. Count all documents linked to these vehicles
+            $docCount = 0;
+            $docCount += \App\Models\Tax::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\Insurance::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\Fitness::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\Permit::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\Pucc::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\SpeedGovernor::whereIn('vehicle_id', $vehicleIds)->count();
+            $docCount += \App\Models\Vltd::whereIn('vehicle_id', $vehicleIds)->count();
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'citizen_count' => $citizenIds->count(),
+                'vehicle_count' => $vehicleIds->count(),
+                'document_count' => $docCount,
+                'last_active' => $user->updated_at->diffForHumans()
+            ];
+        });
+
+        // Calculate Global Totals for Cards
+        $totals = [
+            'users' => $users->count(),
+            'citizens' => $data->sum('citizen_count'),
+            'vehicles' => $data->sum('vehicle_count'),
+            'documents' => $data->sum('document_count'),
+        ];
+
+        return response()->json([
+            'totals' => $totals,
+            'table' => $data
+        ]);
+    }
 }

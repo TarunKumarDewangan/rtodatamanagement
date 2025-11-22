@@ -99,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}', [AdminController::class, 'updateUser']);
         Route::delete('/users/{user}', [AdminController::class, 'deleteUser']);
         Route::put('/users/{user}/status', [AdminController::class, 'toggleStatus']);
+        Route::get('/dashboard-stats', [AdminController::class, 'getDashboardStats']);
 
         Route::get('/activities', [AdminController::class, 'getActivities']);
         Route::post('/users/{user}/activities', [AdminController::class, 'syncUserActivities']);
